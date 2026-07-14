@@ -1,0 +1,17 @@
+# Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+
+# Python cache / compiled
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Uploads and temporary files
+uploads/*
+!uploads/.gitkeep
