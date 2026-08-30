@@ -20,7 +20,7 @@ import "./globals.css";
  * preview card shown when the link is shared on Slack, LinkedIn or X.
  */
 export const metadata: Metadata = {
-  title: "DocIntel — Enterprise Document Intelligence",
+  title: "DocMinds — Document Intelligence",
   description:
     "Upload documents in 19 formats and ask questions answered from their contents, with page-level citations. Built with FastAPI, pgvector and Llama 3.3.",
   keywords: [
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     "FastAPI",
   ],
   openGraph: {
-    title: "DocIntel — Enterprise Document Intelligence",
+    title: "DocMinds — Document Intelligence",
     description:
       "Retrieval-augmented question answering over your own documents, with citations.",
     type: "website",

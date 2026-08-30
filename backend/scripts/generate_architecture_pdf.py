@@ -59,7 +59,7 @@ class NumberedCanvas(canvas.Canvas):
         if self._pageNumber > 1:
             self.setFont("Helvetica-Bold", 8)
             self.setFillColor(primary_color)
-            self.drawString(54, height - 36, "ENTERPRISE DOCUMENT INTELLIGENCE ASSISTANT")
+            self.drawString(54, height - 36, "DOCMINDS")
             
             self.setFont("Helvetica", 8)
             self.setFillColor(text_color)
@@ -186,7 +186,7 @@ def create_architecture_pdf(output_path):
     
     # ------------------ TITLE SECTION ------------------
     story.append(Spacer(1, 40))
-    story.append(Paragraph("Enterprise Document Intelligence Assistant", title_style))
+    story.append(Paragraph("DocMinds", title_style))
     story.append(Paragraph("System Architecture & Processing Workflow: A Guide for Business Leaders", subtitle_style))
     
     # Thin divider line
@@ -202,7 +202,7 @@ def create_architecture_pdf(output_path):
     # ------------------ EXECUTIVE SUMMARY (CALLOUT BOX) ------------------
     summary_text = (
         "<b>Executive Summary:</b> Documents are the lifeblood of modern enterprise, but manual data extraction "
-        "and reading is slow, expensive, and error-prone. The <i>Enterprise Document Intelligence Assistant</i> is a "
+        "and reading is slow, expensive, and error-prone. The <i>DocMinds</i> is a "
         "state-of-the-art software engine built to automatically ingest, read, interpret, and securely structure unstructured files "
         "(such as PDFs, scans, Word files, Excel files, and emails). By converting plain files into highly searchable and "
         "AI-ready information segments (vectors), it empowers organizations to instantly search, query, and unlock insights "

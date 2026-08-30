@@ -68,7 +68,7 @@ class Settings(BaseSettings):
     # ==================================================================
     # 1. GENERAL APPLICATION IDENTITY
     # ==================================================================
-    PROJECT_NAME: str = "Enterprise Document Intelligence Assistant"
+    PROJECT_NAME: str = "DocMinds"
 
     # Every API route is prefixed with this, e.g. /api/v1/documents/upload.
     # Putting a version in the URL means we could later ship /api/v2 with

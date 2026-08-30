@@ -1,6 +1,6 @@
 <div align="center">
 
-# Enterprise Document Intelligence Assistant
+# DocMinds
 
 **Upload documents in 19 formats. Ask questions in plain English. Get answers that cite the exact page.**
 
@@ -303,8 +303,8 @@ sudo apt install tesseract-ocr tesseract-ocr-eng
 ### 1. Clone and start the infrastructure
 
 ```bash
-git clone https://github.com/dhanoliya-ji/Enterprise-Document-Intelligence-Assistant.git
-cd Enterprise-Document-Intelligence-Assistant/backend
+git clone https://github.com/dhanoliya-ji/DocMinds.git
+cd DocMinds/backend
 
 # Starts PostgreSQL (with pgvector) on 5433 and Redis on 6379
 docker compose up -d
@@ -419,19 +419,19 @@ The repository ships a [`render.yaml`](render.yaml) blueprint describing the who
 4. When prompted, paste your `GROQ_API_KEY`.
 5. **Apply.** The first build takes 10–15 minutes, mostly installing PyTorch and baking the embedding model into the image.
 
-This creates four resources: `docintel-api`, `docintel-worker`, `docintel-db` (Postgres 16 with pgvector) and `docintel-redis`. Migrations run automatically on boot — the Dockerfile's start command is `alembic upgrade head && uvicorn ...`.
+This creates four resources: `docminds-api`, `docminds-worker`, `docminds-db` (Postgres 16 with pgvector) and `docminds-redis`. Migrations run automatically on boot — the Dockerfile's start command is `alembic upgrade head && uvicorn ...`.
 
 ### Frontend on Vercel
 
 1. Go to **https://vercel.com/new** and import the same repository.
 2. Set **Root Directory** to `frontend`.
 3. Add an environment variable:
-   `NEXT_PUBLIC_API_URL` = your Render API URL, e.g. `https://docintel-api.onrender.com`
+   `NEXT_PUBLIC_API_URL` = your Render API URL, e.g. `https://docminds-api.onrender.com`
 4. Deploy.
 
 ### The one step people forget
 
-Go back to Render → `docintel-api` → **Environment**, and set:
+Go back to Render → `docminds-api` → **Environment**, and set:
 
 ```
 FRONTEND_ORIGIN = https://your-app.vercel.app
@@ -542,7 +542,7 @@ curl -X POST http://localhost:8000/api/v1/chat/sessions/$SESSION/messages \
 ## Project structure
 
 ```
-Enterprise-Document-Intelligence-Assistant/
+DocMinds/
 ├── render.yaml                    Cloud deployment blueprint
 ├── docs/images/                   README screenshots
 │

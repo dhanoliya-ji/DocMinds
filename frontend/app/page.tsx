@@ -170,7 +170,7 @@ export default function LandingPage() {
               <ArrowRight size={17} />
             </Link>
             <a
-              href="https://github.com/dhanoliya-ji/Enterprise-Document-Intelligence-Assistant"
+              href="https://github.com/dhanoliya-ji/DocMinds"
               target="_blank"
               // `noopener noreferrer` on any target="_blank" link: without it,
               // the opened page gets a handle back to this one and can

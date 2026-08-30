@@ -10,8 +10,8 @@
 #  Render is byte-for-byte the same one you can run locally, down to the
 #  system libraries. No version drift, no missing packages.
 #
-#  Build it:  docker build -t docintel-api .
-#  Run it:    docker run -p 8000:8000 --env-file .env docintel-api
+#  Build it:  docker build -t docminds-api .
+#  Run it:    docker run -p 8000:8000 --env-file .env docminds-api
 # ======================================================================
 
 # ---- Base image ------------------------------------------------------

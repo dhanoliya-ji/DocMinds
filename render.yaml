@@ -33,9 +33,9 @@ databases:
   # Render's Postgres 16 ships pgvector, which our migration enables with
   # `CREATE EXTENSION IF NOT EXISTS vector`. Without pgvector there is no
   # vector column and no semantic search at all.
-  - name: docintel-db
+  - name: docminds-db
     databaseName: document_intelligence
-    user: docintel
+    user: docminds
     plan: free
     postgresMajorVersion: "16"
 
@@ -44,7 +44,7 @@ services:
   # 1. REDIS  --  the queue Celery uses to hand jobs to the worker
   # ==================================================================
   - type: redis
-    name: docintel-redis
+    name: docminds-redis
     plan: free
     # Only our own services may connect. An open Redis on the public
     # internet is compromised within minutes.
@@ -57,7 +57,7 @@ services:
   # 2. THE API  --  what the browser talks to
   # ==================================================================
   - type: web
-    name: docintel-api
+    name: docminds-api
     runtime: docker
     plan: free
     # Where the Dockerfile lives, and which directory is treated as the
@@ -76,13 +76,13 @@ services:
       # committed to this file.
       - key: DATABASE_URL
         fromDatabase:
-          name: docintel-db
+          name: docminds-db
           property: connectionString
 
       - key: REDIS_URL_OVERRIDE
         fromService:
           type: redis
-          name: docintel-redis
+          name: docminds-redis
           property: connectionString
 
       # ---- Secrets ----
@@ -143,7 +143,7 @@ services:
   # unresponsive while a large PDF was being OCR'd. Splitting them also
   # means each can be scaled independently.
   - type: worker
-    name: docintel-worker
+    name: docminds-worker
     runtime: docker
     plan: free
     dockerfilePath: ./backend/Dockerfile
@@ -159,13 +159,13 @@ services:
       # the chunks and embeddings that the API later reads.
       - key: DATABASE_URL
         fromDatabase:
-          name: docintel-db
+          name: docminds-db
           property: connectionString
 
       - key: REDIS_URL_OVERRIDE
         fromService:
           type: redis
-          name: docintel-redis
+          name: docminds-redis
           property: connectionString
 
       - key: ENV

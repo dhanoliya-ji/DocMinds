@@ -32,7 +32,7 @@ services:
     # on disk -- and without pgvector there is no vector column and no
     # semantic search at all.
     image: pgvector/pgvector:pg16
-    container_name: doc_intel_postgres
+    container_name: docminds_postgres
 
     # Start again automatically if it crashes, or when Docker itself starts.
     restart: always
@@ -76,7 +76,7 @@ services:
   redis:
     # `alpine` is a minimal Linux base: around 30 MB instead of 100 MB.
     image: redis:7-alpine
-    container_name: doc_intel_redis
+    container_name: docminds_redis
     restart: always
 
     ports:
