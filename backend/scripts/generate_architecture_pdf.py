@@ -1,3 +1,21 @@
+"""
+generate_architecture_pdf.py
+============================
+A STANDALONE UTILITY, not part of the application.
+
+It renders a printable architecture document to PDF using reportlab. Nothing
+in the API or the worker imports it, and it is never executed automatically.
+
+It previously lived in `app/tasks/`, which was misleading: everything else in
+that package is a Celery background job, whereas this is a one-off script you
+run by hand. It was moved here so the tasks package contains only real tasks.
+
+TO RUN IT:
+    pip install reportlab        # deliberately NOT in requirements.txt, since
+                                 # the application itself does not need it
+    python scripts/generate_architecture_pdf.py
+"""
+
 import os
 import sys
 from reportlab.lib.pagesizes import letter
