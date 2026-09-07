@@ -6,11 +6,15 @@ WHAT THIS FILE DOES
 Creates the connection to PostgreSQL, and hands out "sessions" -- the objects
 that every other part of the app uses to read and write the database.
 
-THREE THINGS LIVE HERE
-----------------------
+TWO THINGS LIVE HERE
+--------------------
     engine        the connection factory. One per process.
     SessionLocal  makes new sessions from the engine.
-    get_db()      a FastAPI dependency that opens a session per request.
+
+The per-request FastAPI dependency that wraps `SessionLocal` is `get_db()`, and
+it lives in `api/deps.py` -- next to the other dependencies an endpoint injects,
+rather than split off from them. Code that is NOT serving a request (the Celery
+worker, a script) uses `SessionLocal()` directly from here.
 
 WHAT IS A SESSION?
 ------------------
@@ -29,8 +33,6 @@ A synchronous server sits idle during that wait. An async one uses the time to
 serve other requests instead, so a single process can handle far more users.
 That is what the `asyncpg` driver and the `await` keywords buy us.
 """
-
-from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
@@ -91,26 +93,3 @@ SessionLocal = async_sessionmaker(
     # `flush()` calls make the ordering of writes obvious.
     autoflush=False,
 )
-
-
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """
-    Provide a database session to a FastAPI endpoint, then clean it up.
-
-    Used as `db: AsyncSession = Depends(get_db)` in an endpoint signature.
-
-    HOW THE `yield` WORKS HERE
-    --------------------------
-    This is a generator dependency. FastAPI runs the code up to `yield`, hands
-    the session to the endpoint, and then -- once the response has been sent --
-    resumes this function to run the cleanup.
-
-    That guarantees the connection is released even if the endpoint raises,
-    which is what stops a busy API slowly exhausting the database's connection
-    limit.
-    """
-    async with SessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()

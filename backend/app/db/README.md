@@ -5,7 +5,7 @@ how the real database is brought to match the models.
 
 | Path | Job |
 |---|---|
-| `session.py` | The engine, the session factory, and `get_db` |
+| `session.py` | The engine and the session factory |
 | `base_class.py` | `Base` — the parent of all 11 models |
 | `migrations/` | Alembic: the ordered history of schema changes |
 
@@ -16,16 +16,23 @@ how the real database is brought to match the models.
 ```mermaid
 flowchart LR
     E["engine<br/><i>NullPool</i>"] --> S["SessionLocal<br/><i>async_sessionmaker</i>"]
-    S --> G["get_db()<br/><i>one session per request</i>"]
+    S --> G["deps.get_db()<br/><i>one session per request</i>"]
     G --> EP["an endpoint"]
+    S --> W["the Celery worker<br/><i>SessionLocal() directly</i>"]
 ```
+
+Two ways in. A request gets its session from `get_db` in
+[`api/deps.py`](../api/deps.py); anything not serving a request — the worker, a
+script — calls `SessionLocal()` itself.
 
 Everything is `async`, via `asyncpg`. An endpoint that waits on the database
 yields the event loop instead of blocking it, so one process serves many
 requests while each of them waits.
 
-**`get_db` is a generator dependency.** FastAPI runs it up to the `yield`, hands
-the session to the endpoint, and resumes it after the response is sent:
+**`get_db` is a generator dependency.** It lives in `api/deps.py` rather than
+here, next to the other dependencies an endpoint injects. FastAPI runs it up to
+the `yield`, hands the session to the endpoint, and resumes it after the
+response is sent:
 
 ```python
 async with SessionLocal() as session:
