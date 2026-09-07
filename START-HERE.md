@@ -1,6 +1,6 @@
 # Start here
 
-There are 17 documents in this repository. This page says which ones you need
+There are 18 documents in this repository. This page says which ones you need
 and in what order, so you never have to guess.
 
 **Pick the row that describes you.**
@@ -14,6 +14,7 @@ and in what order, so you never have to guess.
 | Change the frontend | [`frontend/README.md`](frontend/README.md) | 10 min |
 | Look up a word | [GLOSSARY](GLOSSARY.md) | as needed |
 | Fix something broken | [Troubleshooting](README.md#troubleshooting) | as needed |
+| Run the tests | [`backend/tests/`](backend/tests/README.md) | 5 min |
 
 Unfamiliar with RAG, embeddings or vector search? Read the
 [glossary](GLOSSARY.md) first. Twenty minutes there saves an hour everywhere
@@ -121,6 +122,7 @@ stops.
 | [`app/services/`](backend/app/services/README.md) | **The RAG pipeline** |
 | [`app/tasks/`](backend/app/tasks/README.md) | Background jobs |
 | [`scripts/`](backend/scripts/README.md) | Manual utilities |
+| [`tests/`](backend/tests/README.md) | 185 tests, in two tiers |
 
 ### Frontend
 | | |
@@ -158,10 +160,11 @@ So it does not collide with one you may already be running.
 
 ## Honest state of the repository
 
-**There are no tests.** Not one, across roughly 10,800 lines — including the
-chunker's token arithmetic, the retrieval SQL and the tenant isolation. The
-`mock` providers were built to make testing cheap and have never been used for
-it. This is the largest gap, and it is worth knowing before you trust a change.
+**The backend has 185 tests; the frontend has none.** The suite covers the
+chunker's token arithmetic, the retrieval SQL and the multi-tenant isolation —
+see [`backend/tests/`](backend/tests/README.md). What it does not cover is
+named there too: the API endpoints over HTTP, PDF and Office extraction, the
+real OCR engines, and the whole frontend.
 
 **Uploads live on local disk**, so the API and the worker must share a
 filesystem. Running them on separate machines needs the storage layer changed

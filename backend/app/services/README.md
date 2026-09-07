@@ -264,5 +264,11 @@ with no API keys and no model downloads, producing fake but *deterministic*
 output. Deterministic is the important word: it is what would make these
 services testable.
 
-They are not tested yet. The chunker's token arithmetic, the retrieval SQL and
-the tenant isolation above are all currently unverified by anything but reading.
+And they are used for exactly that. The chunker's token arithmetic, the
+retrieval SQL and the tenant isolation above are covered by
+[`backend/tests/`](../../tests/README.md) -- 185 tests, of which the four in
+`TestTenantIsolation` were verified to fail when the `org_id` filter is
+removed.
+
+Still uncovered here: PDF and Office extraction (they need real binary
+fixtures), and the OCR engines beyond the mock path.

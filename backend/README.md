@@ -169,10 +169,12 @@ be running.
 
 Worth knowing before trusting a change:
 
-- **There are no tests.** Not one file, across ~8,000 lines including the
-  chunker's token maths, the retrieval SQL and the tenant isolation described
-  above. The `mock` providers exist to make tests cheap; they have simply never
-  been used for that.
+- **The API layer is untested.** [`tests/`](tests/README.md) covers the
+  services, the schemas and the retrieval SQL -- 185 tests -- but nothing
+  exercises the endpoints over HTTP, so status codes, the auth dependencies
+  and `RoleChecker` are unverified from the outside.
+- **PDF and Office extraction are untested**, because they need real binary
+  fixtures rather than generated ones.
 - **Uploads are stored on local disk** (`uploads/`), so the API and the worker
   must share a filesystem. That rules out running them on separate machines
   without changing the storage layer first.
