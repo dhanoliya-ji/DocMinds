@@ -78,8 +78,10 @@ class Base(DeclarativeBase):
         # ---- Simple pluralisation ----
         # Enough for this schema's vocabulary. English plurals are wildly
         # irregular in general, so any model needing something else should just
-        # set `__tablename__` explicitly -- as APIKey does, because this rule
-        # would otherwise turn it into the unreadable "a_p_i_keys".
+        # set `__tablename__` explicitly -- as APIKey does, because both rules
+        # fire on it at once: every consecutive capital takes an underscore,
+        # and "key" ends in 'y', giving the unreadable "a_p_i_keies".
+        # (Pinned by tests/test_schemas.py, so the example stays true.)
         if snake.endswith("y"):
             # category -> categories
             return snake[:-1] + "ies"
