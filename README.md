@@ -15,6 +15,11 @@ A production-shaped **RAG** (Retrieval-Augmented Generation) platform: multi-ten
 
 ![Landing page](docs/images/01-landing.png)
 
+### New here? **[START-HERE.md](START-HERE.md)** says which page to read first.
+
+Unfamiliar with RAG, embeddings or vector search? The
+**[Glossary](GLOSSARY.md)** explains every term this project uses.
+
 </div>
 
 ---
@@ -35,6 +40,12 @@ A production-shaped **RAG** (Retrieval-Augmented Generation) platform: multi-ten
 - [Configuration reference](#configuration-reference)
 - [Design decisions worth explaining](#design-decisions-worth-explaining)
 - [Troubleshooting](#troubleshooting)
+
+**Beyond this page:** [START-HERE](START-HERE.md) (reading order) ·
+[Glossary](GLOSSARY.md) · and a `README.md` inside every source folder —
+[backend/](backend/README.md), [services/](backend/app/services/README.md),
+[models/](backend/app/models/README.md), [frontend/](frontend/README.md) and
+[ten more](START-HERE.md#every-document).
 
 ---
 
@@ -541,8 +552,13 @@ curl -X POST http://localhost:8000/api/v1/chat/sessions/$SESSION/messages \
 
 ## Project structure
 
+Every folder below has its own `README.md` explaining what it does and why —
+start from [START-HERE.md](START-HERE.md) for the reading order.
+
 ```
 DocMinds/
+├── START-HERE.md                  Which document to read, and when
+├── GLOSSARY.md                    Every term, explained
 ├── render.yaml                    Cloud deployment blueprint
 ├── docs/images/                   README screenshots
 │
