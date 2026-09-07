@@ -55,9 +55,11 @@ retrieved, which is how you tell a retrieval problem from a generation one.
 
 ## `lib/api.ts` — one door to the backend
 
-Every request goes through `apiFetch`, and no component calls `fetch` directly.
-Having one door is what makes these behaviours consistent instead of
-almost-consistent:
+No component calls `fetch` directly. Almost every request goes through one
+`apiFetch` helper — the two exceptions are `login` and `uploadDocuments`, which
+send form encodings rather than JSON and are explained in
+[`lib/README.md`](lib/README.md). Having one door is what makes these
+behaviours consistent instead of almost-consistent:
 
 **The token is attached automatically** — but only when there is one, so login
 and signup do not send `Bearer null`.
