@@ -115,3 +115,10 @@ pytest==8.4.1
 #            real database calls, and without this they would be collected,
 #            reported as passing, and never actually executed.
 pytest-asyncio==1.4.0
+
+# httpx : used by tests/test_api.py to make real HTTP requests against the app
+#            through an in-process ASGI transport -- no uvicorn and no network
+#            port, so the tests are faster and cannot flake on a busy socket.
+#            (It also arrives as a dependency of the groq and openai clients;
+#            it is pinned here because the tests import it directly.)
+httpx==0.28.1

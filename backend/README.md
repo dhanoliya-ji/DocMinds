@@ -169,12 +169,12 @@ be running.
 
 Worth knowing before trusting a change:
 
-- **The API layer is untested.** [`tests/`](tests/README.md) covers the
-  services, the schemas and the retrieval SQL -- 185 tests -- but nothing
-  exercises the endpoints over HTTP, so status codes, the auth dependencies
-  and `RoleChecker` are unverified from the outside.
 - **PDF and Office extraction are untested**, because they need real binary
-  fixtures rather than generated ones.
+  fixtures rather than generated ones. [`tests/`](tests/README.md) has 234
+  tests covering the services, the schemas, the retrieval SQL and the HTTP
+  layer; that file names the rest of the gaps.
+- **Document upload is untested** end to end -- no test posts a real
+  multipart file through the seven ingestion stages.
 - **Uploads are stored on local disk** (`uploads/`), so the API and the worker
   must share a filesystem. That rules out running them on separate machines
   without changing the storage layer first.

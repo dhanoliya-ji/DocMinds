@@ -122,7 +122,7 @@ stops.
 | [`app/services/`](backend/app/services/README.md) | **The RAG pipeline** |
 | [`app/tasks/`](backend/app/tasks/README.md) | Background jobs |
 | [`scripts/`](backend/scripts/README.md) | Manual utilities |
-| [`tests/`](backend/tests/README.md) | 185 tests, in two tiers |
+| [`tests/`](backend/tests/README.md) | 234 tests, in two tiers |
 
 ### Frontend
 | | |
@@ -160,11 +160,11 @@ So it does not collide with one you may already be running.
 
 ## Honest state of the repository
 
-**The backend has 185 tests; the frontend has none.** The suite covers the
+**The backend has 234 tests; the frontend has none.** The suite covers the
 chunker's token arithmetic, the retrieval SQL and the multi-tenant isolation —
 see [`backend/tests/`](backend/tests/README.md). What it does not cover is
-named there too: the API endpoints over HTTP, PDF and Office extraction, the
-real OCR engines, and the whole frontend.
+named there too: PDF and Office extraction, the real OCR engines, document
+upload, and the whole frontend.
 
 **Uploads live on local disk**, so the API and the worker must share a
 filesystem. Running them on separate machines needs the storage layer changed

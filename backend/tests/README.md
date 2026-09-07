@@ -1,6 +1,6 @@
 # `backend/tests/` — the test suite
 
-**185 tests.** 165 run anywhere; 20 need a real database and skip cleanly
+**234 tests.** 165 run anywhere; 69 need a real database and skip cleanly
 without one.
 
 ```bash
@@ -17,17 +17,17 @@ python -m pytest tests/test_chunker.py -v
 ```mermaid
 flowchart TD
     A["python -m pytest"] --> P{"Postgres with<br/>pgvector reachable?"}
-    P -->|"yes"| B["185 pass"]
-    P -->|"no"| C["165 pass<br/>20 skip, with a reason"]
+    P -->|"yes"| B["234 pass"]
+    P -->|"no"| C["165 pass<br/>69 skip, with a reason"]
 ```
 
 | Tier | Needs | Covers |
 |---|---|---|
 | **1** | Nothing | Chunking, hashing, tokens, prompts, schemas, extraction |
-| **2** | Postgres + pgvector | Retrieval, tenant isolation, cascades |
+| **2** | Postgres + pgvector | Retrieval, tenant isolation, cascades, the HTTP layer |
 
 **Tier 2 skips rather than fails.** Someone with no Docker running should see
-`20 skipped`, not twenty red failures they cannot act on. Red must mean
+`69 skipped`, not sixty-nine red failures they cannot act on. Red must mean
 *broken*, not *you have not started a container* — a suite that is red for
 environmental reasons is a suite people learn to ignore.
 
@@ -61,6 +61,7 @@ than having no test, because it looks like coverage.
 | `test_embedding.py` | 20 | Dimensions, batch order, determinism |
 | `test_schemas.py` | 40 | Validation bounds, secret exclusion, table names |
 | `test_retrieval_db.py` | 20 | **Tier 2** — search, tenant isolation, cascades |
+| `test_api.py` | 49 | **Tier 2** — real HTTP: auth, validation, status codes |
 | `conftest.py` | — | The database probe and shared fixtures |
 
 ---
@@ -97,16 +98,29 @@ to answer from training data.
 pattern rather than against a fixed list, so a future `password_reset_token`
 fails here instead of shipping.
 
+**`test_api.py::TestAuthenticationIsRequired`** — that the auth dependency is
+actually *attached* to each endpoint. No unit test can see this: omit the
+dependency from one handler and the service underneath still behaves
+perfectly, it is just now reachable by anyone. Verified to discriminate by
+adding an unprotected route at runtime and confirming it answers 200 where the
+real ones answer 401.
+
+**`test_api.py::TestLogin::test_the_error_does_not_reveal_which_half_was_wrong`**
+— a wrong password and an unknown email must return the identical response.
+Distinguishing them turns the login form into an account-enumeration oracle.
+
 ### Not covered
 
 Honest gaps, so nobody assumes more than is here:
 
 - **PDF, DOCX, PPTX, XLSX extraction.** These need real binary fixtures; a
   generated one mostly tests the library that generated it.
-- **The API endpoints.** No HTTP-level tests, so status codes, the auth
-  dependencies and `RoleChecker` are unverified from the outside.
+- **`RoleChecker`.** The dependency is unit-tested nowhere and exercised by no
+  HTTP test, because it guards a single endpoint that every test account has
+  the role for.
 - **The ingestion task end to end.** The seven stages are tested individually
   through their services, but not as one run.
+- **Document upload.** No test posts a real multipart file.
 - **OCR.** Only the mock path is reachable without installing an engine.
 - **The frontend.** No tests at all.
 

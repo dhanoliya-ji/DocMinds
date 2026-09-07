@@ -266,7 +266,7 @@ services testable.
 
 And they are used for exactly that. The chunker's token arithmetic, the
 retrieval SQL and the tenant isolation above are covered by
-[`backend/tests/`](../../tests/README.md) -- 185 tests, of which the four in
+[`backend/tests/`](../../tests/README.md) -- 234 tests, of which the four in
 `TestTenantIsolation` were verified to fail when the `org_id` filter is
 removed.
 
