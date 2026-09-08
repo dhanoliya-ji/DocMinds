@@ -1,6 +1,6 @@
 # `frontend/tests/` — the test suite
 
-**106 tests.** No database, no backend, no network — every one runs anywhere
+**122 tests.** No database, no backend, no network — every one runs anywhere
 `npm install` has been run.
 
 ```bash
@@ -21,6 +21,7 @@ npx vitest run -t "rollback"    # by name
 | `ChatPanel.test.tsx` | 27 | Asking, the optimistic rollback, citations, feedback |
 | `SearchPanel.test.tsx` | 21 | Searching, the two empty states, the score readout |
 | `UploadZone.test.tsx` | 17 | Drag and drop, uploading, feedback |
+| `ProjectPage.test.tsx` | 16 | The document polling, and the auth guard |
 | `setup.ts` | — | Router, motion, `localStorage` and `location` stubs |
 
 ---
@@ -58,6 +59,13 @@ the moment the user needed to be told.
 as much as the first: clearing on any failure would log the user out over a
 missing project.
 
+**`ProjectPage` — the polling, from both ends.** It must keep asking while a
+document is `pending` or `processing`, and it must *stop* once everything has
+settled. And its `clearInterval` cleanup must fire: without it every re-render
+stacks another timer and the app escalates into hammering the API. That symptom
+— gradually increasing load with no obvious cause — does not reproduce on a
+short visit, which is precisely why a test is the only thing that catches it.
+
 ---
 
 ## These were checked for the ability to fail
@@ -73,6 +81,9 @@ code it covers and confirming it went red:
 | Stop clearing the token on a 401 | caught |
 | Handle only the string form of `detail` | caught |
 | Stop trimming the search query | caught (2 tests) |
+| Remove `ProjectPage`'s `clearInterval` cleanup | caught (2 tests) |
+| Remove its "stop when settled" early return | caught (4 tests) |
+| Remove its auth guard redirect | caught (2 tests) |
 
 Do the same for any test you add. It takes under a minute and it is the only
 way to know which kind of test you have written.
@@ -141,10 +152,9 @@ relationship to the behaviour under test.
 
 Honest gaps:
 
-- **The four pages** in `app/`. No tests for `/login`, `/dashboard`,
-  `/project/[id]` or the landing page — so the auth guards, the project list
-  and the **document polling** are all unverified. The polling is the notable
-  one: its `clearInterval` cleanup is load-bearing, and nothing here checks it.
+- **Three of the four pages.** `/project/[id]` is covered; `/login`,
+  `/dashboard` and the landing page are not — so signup and login, project
+  creation, and the dashboard's provider health check are unverified.
 - **Tailwind styling and layout.** Out of reach for jsdom, which has no layout
   engine at all.
 - **End to end.** Nothing drives a real browser against a real backend, so the

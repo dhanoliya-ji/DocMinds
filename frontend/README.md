@@ -161,13 +161,15 @@ npm test              # watch
 npm run test:run      # once
 ```
 
-106 tests, Vitest with Testing Library — no backend and no network needed. They
-cover `lib/api.ts` and the three panels; see
+122 tests, Vitest with Testing Library — no backend and no network needed. They
+cover `lib/api.ts`, the three panels, and this page's polling; see
 [`tests/README.md`](tests/README.md) for what is and is not covered, and for
 the mutation checks each key assertion was verified against.
 
-The four pages in `app/` are the gap, which means the document polling
-described above is unverified.
+Both polling lines quoted above are pinned: removing the `clearInterval`
+cleanup fails two tests, and removing the early return fails four.
+
+`/login`, `/dashboard` and the landing page remain untested.
 
 ---
 

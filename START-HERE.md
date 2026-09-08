@@ -131,7 +131,7 @@ stops.
 | [`app/`](frontend/app/README.md) | The four routes |
 | [`components/`](frontend/components/README.md) | Upload, search, chat |
 | [`lib/`](frontend/lib/README.md) | The API client |
-| [`tests/`](frontend/tests/README.md) | 106 tests |
+| [`tests/`](frontend/tests/README.md) | 122 tests |
 
 ---
 
@@ -161,7 +161,7 @@ So it does not collide with one you may already be running.
 
 ## Honest state of the repository
 
-**340 tests: 234 backend, 106 frontend.** They cover the chunker's token
+**356 tests: 234 backend, 122 frontend.** They cover the chunker's token
 arithmetic, the retrieval SQL, the multi-tenant isolation, the API's auth
 wiring, and the frontend's API client and three panels — see
 [`backend/tests/`](backend/tests/README.md) and

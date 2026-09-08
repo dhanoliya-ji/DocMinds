@@ -123,7 +123,7 @@ Honest gaps, so nobody assumes more than is here:
 - **Document upload.** No test posts a real multipart file.
 - **OCR.** Only the mock path is reachable without installing an engine.
 - **The frontend.** Covered separately by
-  [`frontend/tests/`](../../frontend/tests/README.md) (106 tests); its own gaps
+  [`frontend/tests/`](../../frontend/tests/README.md) (122 tests); its own gaps
   are listed there.
 
 ---
