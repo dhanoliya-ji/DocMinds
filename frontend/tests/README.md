@@ -161,10 +161,24 @@ Honest gaps:
   hand-written interfaces in `lib/api.ts` can still drift from
   `backend/app/schemas/` with nothing to catch it.
 
-## A note on dependencies
+## A note on the pinned versions
 
-Vitest is pinned to `^3.2.6`, not the latest. Vitest 5 requires
-`@types/node >= 22` while this project pins `^20`, and versions below 3.2.6
-carry a critical advisory in the Vitest UI server. The test tooling adds **no**
-vulnerabilities; `npm audit` reports the same five pre-existing high findings
-(`next`, `postcss`, and the eslint config chain) as before it was added.
+Three pins here are load-bearing, and unpinning any of them breaks something
+that is not obvious.
+
+**`vitest@^3.2.6`** — not the latest. Vitest 5 requires `@types/node >= 22`
+while this project pins `^20`, and versions below 3.2.6 carry a critical
+advisory in the Vitest UI server.
+
+**`vite@^7.3.6`, and `@vitejs/plugin-react@^5` rather than `^6`** — these exist
+to keep exactly **one** copy of vite in the tree. plugin-react 6 pulls vite 8
+while vitest 3 uses vite 7, and two vites means two incompatible `Plugin` types.
+
+That does not break the tests, which is what makes it worth writing down: it
+breaks `npm run build`, because `next build` type-checks `vitest.config.ts`
+along with everything else and fails on the clashing plugin types. Run
+`npm ls vite` after changing any of these — it must report one version, deduped.
+
+The test tooling adds **no** vulnerabilities. `npm audit` reports the same five
+pre-existing high findings (`next`, `postcss`, and the eslint config chain) as
+before it was added.
