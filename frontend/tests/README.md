@@ -179,6 +179,20 @@ breaks `npm run build`, because `next build` type-checks `vitest.config.ts`
 along with everything else and fails on the clashing plugin types. Run
 `npm ls vite` after changing any of these — it must report one version, deduped.
 
-The test tooling adds **no** vulnerabilities. `npm audit` reports the same five
-pre-existing high findings (`next`, `postcss`, and the eslint config chain) as
-before it was added.
+`npm audit` reports **0 vulnerabilities**.
+
+## The lesson from the Next 16 upgrade
+
+A green test run is not a working app.
+
+Next 15 made dynamic route params a Promise. `next build` type-checked the old
+synchronous `params.id` without complaint, and all 122 tests passed — because a
+test supplies `params` itself, so it never exercised what Next actually hands
+the page. The route even returned 200, through a compatibility shim.
+
+Only `next dev` reported it, and only when the page was requested.
+
+So the verification loop for anything touching the framework is four steps, not
+two: `npm run test:run`, `npm run lint`, `npm run build`, and then **start the
+dev server and request every route**, watching its log. The last step is the
+one that found the only real bug in a four-major upgrade.

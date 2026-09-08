@@ -101,6 +101,15 @@ async function apiFetch<T>(
   if (response.status === 401) {
     clearToken();
     if (typeof window !== "undefined") {
+      // A HARD navigation, deliberately, and not `router.push`.
+      //
+      // Two reasons. This is a plain module function rather than a component,
+      // so there is no router to reach for -- and a full page load is what we
+      // actually want: it discards every piece of in-memory React state along
+      // with the token. A soft navigation would carry the previous user's
+      // loaded projects and open chat session into the login screen.
+      //
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = "/login";
     }
     throw new Error("Your session expired. Please sign in again.");

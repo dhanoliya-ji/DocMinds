@@ -9,7 +9,7 @@ A production-shaped **RAG** (Retrieval-Augmented Generation) platform: multi-ten
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16_+_pgvector-4169E1?logo=postgresql&logoColor=white)](https://github.com/pgvector/pgvector)
-[![Next.js](https://img.shields.io/badge/Next.js-14-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org/)
 [![Celery](https://img.shields.io/badge/Celery-5.4-37814A?logo=celery&logoColor=white)](https://docs.celeryq.dev/)
 [![Llama](https://img.shields.io/badge/Llama_3.3_70B-on_Groq-F55036)](https://console.groq.com/)
 
@@ -192,7 +192,7 @@ A language model has never seen your company's documents. Ask it about your inte
 ```
 ┌───────────────────────────────────────────────────────────────────┐
 │  BROWSER                                                          │
-│  Next.js 14 · Tailwind · Framer Motion                            │
+│  Next.js 16 · React 19 · Tailwind · Framer Motion                 │
 │  landing · auth · dashboard · upload · search · chat              │
 └───────────────────────────┬───────────────────────────────────────┘
                             │  REST + JWT
@@ -282,7 +282,7 @@ All three are **page-aware**: the text is split on page markers *first*, and eac
 | Background jobs | **Celery + Redis** | Keeps minutes-long ingestion out of the request cycle |
 | Migrations | **Alembic** | Schema changes are versioned, ordered and reversible |
 | Auth | **JWT** (python-jose) + **bcrypt** | Stateless access tokens with longer-lived refresh tokens; bcrypt is deliberately slow to resist brute force |
-| Frontend | **Next.js 14 + Tailwind + Framer Motion** | App Router, utility styling, and real animation without hand-writing keyframes |
+| Frontend | **Next.js 16 + React 19 + Tailwind + Framer Motion** | App Router, utility styling, and real animation without hand-writing keyframes |
 
 ---
 
@@ -291,7 +291,7 @@ All three are **page-aware**: the text is split on page markers *first*, and eac
 ### Prerequisites
 
 - **Python 3.11+**
-- **Node.js 18+**
+- **Node.js 20.9+** — required by Next.js 16, which refuses to start on 18
 - **Docker Desktop** (for PostgreSQL and Redis)
 - **Tesseract OCR** — only needed for scanned PDFs and images
 
