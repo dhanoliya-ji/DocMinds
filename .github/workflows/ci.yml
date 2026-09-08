@@ -1,0 +1,210 @@
+# CI — runs on every push and pull request.
+#
+# WHY THIS EXISTS
+# ---------------
+# There are 356 tests across this repository, and until this file they only
+# ran when someone remembered to run them. That is the failure mode CI exists
+# to remove: a suite nobody runs is a suite that quietly stops passing.
+#
+# WHAT IT CHECKS, AND WHY EACH STEP EARNS ITS PLACE
+# -------------------------------------------------
+# The backend and frontend run as separate jobs, in parallel, because they
+# share nothing and a failure in one should not hide the state of the other.
+#
+# The frontend job runs FOUR checks rather than the obvious two, and the extra
+# two are the ones that have actually caught things:
+#
+#   - `npm run build` catches what tests cannot. A Next.js upgrade once left
+#     122 passing tests beside a build that would not compile, because the
+#     tests never type-check the config files that `next build` does.
+#   - `npm audit` catches supply-chain drift. Both halves of this project
+#     currently report zero vulnerabilities, and the only way that stays true
+#     is if something fails when it stops being true.
+#
+# WHAT IT DELIBERATELY DOES NOT DO
+# --------------------------------
+# No deployment, and no publishing. This workflow only ever reports.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A new push to the same branch cancels the run still in flight. Without this,
+# pushing three times in a minute queues three full runs and you wait for the
+# answer to a question you have already moved past.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ====================================================================
+  backend:
+    name: Backend — 234 tests
+    runs-on: ubuntu-latest
+
+    services:
+      # The real thing, with pgvector. The Tier 2 tests are written against
+      # the `vector` column type and the `<=>` distance operator, so SQLite
+      # is not a substitute -- it would be a different test passing while the
+      # real query is broken.
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespassword
+          POSTGRES_DB: document_intelligence
+        ports:
+          - 5432:5432
+        # Without this the job races the container and the first connection
+        # fails on a database that is seconds from being ready.
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # The service is published on 5432; the app defaults to 5433 locally so
+      # it does not collide with a developer's own Postgres. CI has no such
+      # collision, so it points at the standard port.
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: document_intelligence
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+      # Every external dependency mocked. This is what the mock providers were
+      # built for: the full pipeline runs with no API key, no model download
+      # and no Tesseract install, producing deterministic output.
+      EMBEDDING_PROVIDER: mock
+      LLM_PROVIDER: mock
+      OCR_PROVIDER: mock
+      # Never the checked-in default, even in CI.
+      SECRET_KEY: ci-only-secret-not-used-anywhere-else
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run migrations
+        # Creates every table, enables the pgvector extension and builds the
+        # HNSW index. The Tier 2 tests skip themselves without it, so leaving
+        # this out would turn 69 tests green by not running them.
+        run: alembic upgrade head
+
+      - name: Run tests
+        # One run, then inspect its summary. The suite skips its 69 database
+        # tests when no database is reachable -- correct on a laptop, and
+        # dangerous here: a broken service container would present as a pass.
+        # So a skip in CI is an error.
+        run: |
+          set -o pipefail
+          python -m pytest | tee result.txt
+          if grep -qE "[0-9]+ skipped" result.txt; then
+            echo "::error::Tests were skipped in CI. The database service is probably not reachable, so Tier 2 never ran."
+            exit 1
+          fi
+
+  # ====================================================================
+  frontend:
+    name: Frontend — 122 tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # 22, not 20. Two floors have to be cleared at once: Next 16 needs
+          # >=20.9.0, and vite 7 needs ^20.19.0 || >=22.12.0. A bare "20"
+          # resolves to whatever the latest 20.x happens to be, which clears
+          # both today and is one release-line decision away from not doing.
+          # Naming 22 makes the floor explicit rather than incidental.
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        # `npm ci` rather than `npm install`: it installs exactly what the
+        # lockfile says and fails if package.json and the lockfile disagree.
+        # `npm install` would quietly resolve a newer version, so CI would be
+        # testing something nobody has on their machine.
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test:run
+
+      - name: Build
+        # The check that catches what the tests cannot -- `next build`
+        # type-checks config files the test run never touches.
+        run: npm run build
+
+  # ====================================================================
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: npm audit
+        working-directory: frontend
+        # The frontend is currently at zero vulnerabilities, and this is what
+        # keeps it there. `--audit-level=high` means a new moderate advisory
+        # reports without failing the build, while a high or critical one
+        # stops it -- the line between "worth knowing" and "worth blocking".
+        run: npm audit --audit-level=high
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: pip-audit
+        working-directory: backend
+        # Advisory only. The backend pins 31 packages including PyTorch and
+        # its transitive tree, where a finding is often unreachable from this
+        # application's code -- so this reports rather than blocks, and a real
+        # finding is a decision for a person to make.
+        continue-on-error: true
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt
