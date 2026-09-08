@@ -27,7 +27,7 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 import { getToken } from "@/lib/api";
 
@@ -104,17 +104,43 @@ const STATS = [
   { value: "<50ms", label: "typical search" },
 ];
 
-export default function LandingPage() {
-  // Tracks whether the visitor already has a saved login token, so the call to
-  // action can read "Open dashboard" instead of "Get started".
-  const [signedIn, setSignedIn] = useState(false);
+/**
+ * Tell React when the stored token might have changed.
+ *
+ * The `storage` event fires when ANOTHER tab writes to localStorage, so
+ * signing out in one tab updates this page in the others. It does not fire for
+ * changes made by this tab -- which is fine here, because signing in navigates
+ * away from this page anyway.
+ *
+ * The returned function unsubscribes, which React calls on unmount.
+ */
+function subscribeToTokenChanges(onChange: () => void): () => void {
+  window.addEventListener("storage", onChange);
+  return () => window.removeEventListener("storage", onChange);
+}
 
-  // `useEffect` runs AFTER the component is first drawn, in the browser only.
-  // localStorage does not exist during server rendering, so this check cannot
-  // happen any earlier. The empty `[]` means "run once, not on every render".
-  useEffect(() => {
-    setSignedIn(Boolean(getToken()));
-  }, []);
+export default function LandingPage() {
+  // Whether the visitor already has a saved login token, so the call to action
+  // can read "Open dashboard" instead of "Get started".
+  //
+  // WHY useSyncExternalStore AND NOT useState + useEffect
+  // -----------------------------------------------------
+  // localStorage is state that lives OUTSIDE React, and this is the hook React
+  // provides for reading exactly that. Its third argument is the value to use
+  // during server rendering, which is what makes it safe here: there is no
+  // localStorage on the server, so the server renders `false` and the browser
+  // corrects it on hydration.
+  //
+  // The older `useState(false)` plus an effect did the same job with an extra
+  // render pass, and React 19's linter flags it -- setting state synchronously
+  // in an effect causes exactly the cascading render this hook avoids.
+  const signedIn = useSyncExternalStore(
+    subscribeToTokenChanges,
+    () => Boolean(getToken()),
+    // The server snapshot. Always false: a server-rendered page cannot know
+    // whether this particular visitor is signed in.
+    () => false
+  );
 
   return (
     <main className="relative min-h-screen overflow-hidden">

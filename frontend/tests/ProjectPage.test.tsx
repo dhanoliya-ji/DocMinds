@@ -67,7 +67,46 @@ function doc(overrides: Record<string, unknown> = {}) {
   };
 }
 
-const params = { id: "project-1" };
+/**
+ * The route params, in the shape React's `use()` can read synchronously.
+ *
+ * Next.js 15 made dynamic route params async, so the page unwraps them with
+ * `use()`. A test has to hand it a promise rather than a plain object -- which
+ * the type system enforces, and which is how this file caught the change
+ * during the Next 16 upgrade.
+ *
+ * WHY THE `status` AND `value` PROPERTIES
+ * ---------------------------------------
+ * `use()` on an ordinary pending promise SUSPENDS, and getting a suspended
+ * render to resume inside a test turns out to be genuinely awkward: awaiting
+ * the promise inside `act` is not enough, and it fails under real timers as
+ * well as fake ones.
+ *
+ * React's own protocol offers a way out. A thenable already tagged
+ * `status: "fulfilled"` is read straight off `value` with no suspension at
+ * all -- which is exactly the state Next.js hands a page in production once
+ * the router has resolved the segment. So this is not a trick to dodge
+ * suspense; it is the resolved case, which is the one these tests are about.
+ *
+ * The promise must also be STABLE across renders: `use()` caches on identity,
+ * so one built inline in the JSX is new every render and never settles.
+ */
+type SettledParams = Promise<{ id: string }> & {
+  status: "fulfilled";
+  value: { id: string };
+};
+
+function routeParams(id = "project-1"): SettledParams {
+  const params = Promise.resolve({ id }) as SettledParams;
+  params.status = "fulfilled";
+  params.value = { id };
+  return params;
+}
+
+/** Render the page with a stable, already-resolved params promise. */
+function renderPage(paramsPromise: SettledParams = routeParams()) {
+  return render(<ProjectPage params={paramsPromise} />);
+}
 
 beforeEach(() => {
   vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -101,7 +140,7 @@ async function advance(ms: number) {
 describe("document polling", () => {
   it("polls while a document is still processing", async () => {
     listDocuments.mockResolvedValue([doc({ status: "processing" })]);
-    render(<ProjectPage params={params} />);
+    renderPage();
 
     await waitFor(() => expect(listDocuments).toHaveBeenCalled());
     const afterInitialLoad = listDocuments.mock.calls.length;
@@ -115,7 +154,7 @@ describe("document polling", () => {
     // "pending" means the worker has not picked the job up yet -- the state a
     // document sits in forever when no worker is running.
     listDocuments.mockResolvedValue([doc({ status: "pending" })]);
-    render(<ProjectPage params={params} />);
+    renderPage();
 
     await waitFor(() => expect(listDocuments).toHaveBeenCalled());
     const before = listDocuments.mock.calls.length;
@@ -129,7 +168,7 @@ describe("document polling", () => {
     // The early return. Without it an idle project polls forever for a change
     // that will never come -- constant background load for nothing.
     listDocuments.mockResolvedValue([doc({ status: "completed" })]);
-    render(<ProjectPage params={params} />);
+    renderPage();
 
     await waitFor(() => expect(listDocuments).toHaveBeenCalled());
     await settle();
@@ -144,7 +183,7 @@ describe("document polling", () => {
     // "failed" is a terminal state. Polling it forever would never see a
     // change, because nothing is going to retry on its own.
     listDocuments.mockResolvedValue([doc({ status: "failed" })]);
-    render(<ProjectPage params={params} />);
+    renderPage();
 
     await waitFor(() => expect(listDocuments).toHaveBeenCalled());
     await settle();
@@ -157,7 +196,7 @@ describe("document polling", () => {
 
   it("does not poll an empty project", async () => {
     listDocuments.mockResolvedValue([]);
-    render(<ProjectPage params={params} />);
+    renderPage();
 
     await waitFor(() => expect(listDocuments).toHaveBeenCalled());
     await settle();
@@ -172,7 +211,7 @@ describe("document polling", () => {
     // The transition that matters: the page must notice work has finished and
     // wind itself down, not keep asking.
     listDocuments.mockResolvedValue([doc({ status: "processing" })]);
-    render(<ProjectPage params={params} />);
+    renderPage();
     await waitFor(() => expect(listDocuments).toHaveBeenCalled());
 
     // The worker finishes.
@@ -191,7 +230,7 @@ describe("document polling", () => {
     // and the app quietly escalates into hammering the API with requests
     // nothing is listening for.
     listDocuments.mockResolvedValue([doc({ status: "processing" })]);
-    const { unmount } = render(<ProjectPage params={params} />);
+    const { unmount } = renderPage();
 
     await waitFor(() => expect(listDocuments).toHaveBeenCalled());
 
@@ -209,7 +248,7 @@ describe("document polling", () => {
     // constantly, and without cleanup each run would leave its timer behind.
     // Request volume would then grow without bound.
     listDocuments.mockResolvedValue([doc({ status: "processing" })]);
-    render(<ProjectPage params={params} />);
+    renderPage();
     await waitFor(() => expect(listDocuments).toHaveBeenCalled());
 
     const before = listDocuments.mock.calls.length;
@@ -234,7 +273,7 @@ describe("document polling", () => {
 describe("the auth guard", () => {
   it("redirects a signed-out visitor to /login", async () => {
     getToken.mockReturnValue(null);
-    render(<ProjectPage params={params} />);
+    renderPage();
 
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/login"));
   });
@@ -243,14 +282,14 @@ describe("the auth guard", () => {
     // The redirect returns early. Fetching anyway would produce a 401 and a
     // pointless request on every page load.
     getToken.mockReturnValue(null);
-    render(<ProjectPage params={params} />);
+    renderPage();
 
     await settle();
     expect(listDocuments).not.toHaveBeenCalled();
   });
 
   it("does not redirect a signed-in visitor", async () => {
-    render(<ProjectPage params={params} />);
+    renderPage();
 
     await waitFor(() => expect(listDocuments).toHaveBeenCalled());
     expect(pushMock).not.toHaveBeenCalledWith("/login");
@@ -263,13 +302,13 @@ describe("the auth guard", () => {
 
 describe("loading", () => {
   it("scopes the document list to this project", async () => {
-    render(<ProjectPage params={{ id: "project-42" }} />);
+    renderPage(routeParams("project-42"));
 
     await waitFor(() => expect(listDocuments).toHaveBeenCalledWith("project-42"));
   });
 
   it("shows the project's name", async () => {
-    render(<ProjectPage params={params} />);
+    renderPage();
 
     expect(await screen.findByText("HR Handbook")).toBeInTheDocument();
   });
@@ -278,7 +317,7 @@ describe("loading", () => {
     // A missing heading is cosmetic. The documents are the page's purpose and
     // must still arrive.
     listProjects.mockRejectedValue(new Error("Could not list projects"));
-    render(<ProjectPage params={params} />);
+    renderPage();
 
     await waitFor(() => expect(listDocuments).toHaveBeenCalled());
     expect(await screen.findByText(/handbook\.pdf/)).toBeInTheDocument();
@@ -288,7 +327,7 @@ describe("loading", () => {
     // Deliberately swallowed: the poll will try again shortly, and an error
     // banner that clears itself three seconds later is worse than no banner.
     listDocuments.mockRejectedValueOnce(new Error("Network blip"));
-    render(<ProjectPage params={params} />);
+    renderPage();
 
     await settle();
     expect(screen.queryByText(/network blip/i)).not.toBeInTheDocument();
@@ -299,7 +338,7 @@ describe("loading", () => {
       doc({ id: "d1", filename: "first.pdf" }),
       doc({ id: "d2", filename: "second.docx" }),
     ]);
-    render(<ProjectPage params={params} />);
+    renderPage();
 
     expect(await screen.findByText(/first\.pdf/)).toBeInTheDocument();
     expect(screen.getByText(/second\.docx/)).toBeInTheDocument();

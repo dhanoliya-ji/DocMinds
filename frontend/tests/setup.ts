@@ -53,9 +53,8 @@ vi.mock("next/navigation", () => ({
 vi.mock("framer-motion", async () => {
   const React = await import("react");
 
-  const passthrough = (tag: string) =>
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ({ children, ...props }: any) => {
+  const passthrough = (tag: string) => {
+    const Passthrough = ({ children, ...props }: any) => {
       // Strip the animation-only props so React does not warn about unknown
       // attributes on a real DOM element.
       const {
@@ -64,10 +63,20 @@ vi.mock("framer-motion", async () => {
       } = props;
       return React.createElement(tag, rest, children);
     };
+    // A displayName is what makes a failure read "MotionDiv" rather than
+    // "Anonymous" in a rendered-DOM dump -- which is most of what you have to
+    // go on when a component test fails.
+    Passthrough.displayName = `Motion${tag[0].toUpperCase()}${tag.slice(1)}`;
+    return Passthrough;
+  };
+
+  const AnimatePresenceStub = ({ children }: { children: React.ReactNode }) =>
+    children;
+  AnimatePresenceStub.displayName = "AnimatePresence";
 
   return {
     motion: new Proxy({}, { get: (_t, tag: string) => passthrough(tag) }),
-    AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
+    AnimatePresence: AnimatePresenceStub,
     useAnimation: () => ({ start: vi.fn(), stop: vi.fn() }),
   };
 });

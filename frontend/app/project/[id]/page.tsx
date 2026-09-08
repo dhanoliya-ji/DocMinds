@@ -14,6 +14,9 @@
  * Next.js reads the folder name and passes the matching URL piece in as
  * `params`, so we do not write a separate page per project.
  *
+ * Since Next.js 15 `params` arrives as a PROMISE, unwrapped below with
+ * React's `use()`.
+ *
  * THE POLLING LOOP
  * ----------------
  * Processing happens in a background Celery worker, so the browser is never
@@ -37,7 +40,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 
 import ChatPanel from "@/components/ChatPanel";
 import SearchPanel from "@/components/SearchPanel";
@@ -47,9 +50,28 @@ import { api, DocumentItem, getToken } from "@/lib/api";
 /** The three tabs of the workspace. */
 type Tab = "documents" | "search" | "chat";
 
-export default function ProjectPage({ params }: { params: { id: string } }) {
+export default function ProjectPage({
+  params,
+}: {
+  // A PROMISE, not a plain object.
+  //
+  // Next.js 15 made the dynamic route params async, so that a page can begin
+  // rendering before the router has finished resolving them. Next 16 still
+  // accepts synchronous access through a compatibility shim -- the page works
+  // and returns 200 -- but logs an error in development and will break in a
+  // future major.
+  //
+  // Worth knowing how that was found: `next build` type-checked it without
+  // complaint and every unit test passed, because a test supplies `params`
+  // itself. Only running `next dev` and requesting the page surfaced it.
+  params: Promise<{ id: string }>;
+}) {
   const router = useRouter();
-  const projectId = params.id;
+
+  // `use()` unwraps a promise inside a component. This is a Client Component,
+  // so `await` is not available -- `use` is React's equivalent, and it
+  // suspends the render until the value is ready.
+  const projectId = use(params).id;
 
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [projectName, setProjectName] = useState("Project");
@@ -80,7 +102,22 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
       return;
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- see below
     loadDocuments();
+    //
+    // The rule above objects to setState inside an effect, and it is right to
+    // in general: a synchronous setState in an effect body causes a second
+    // render immediately after the first.
+    //
+    // That is not what happens here. `loadDocuments` is async, so its
+    // setDocuments and setLoading run in promise callbacks after the fetch
+    // resolves -- the effect body itself sets no state. The rule flags the
+    // call site because it cannot see through the async boundary.
+    //
+    // Fetching on mount is also the one thing an effect is unambiguously for.
+    // Avoiding it would mean adopting a data-fetching library (TanStack Query
+    // or similar), which is a reasonable thing to want and a much larger
+    // change than this warrants.
 
     // Look up this project's name for the page heading. The list endpoint is
     // reused rather than adding a dedicated "get one project" call.

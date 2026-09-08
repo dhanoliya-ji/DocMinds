@@ -70,6 +70,19 @@ export default function ChatPanel({ projectId }: Props) {
   // scroll target.
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  // A counter for the temporary ids given to optimistic messages.
+  //
+  // This used to be `Date.now()`, which had two problems. Two messages created
+  // in the same millisecond would share an id, and the rollback below removes
+  // by id -- so a collision would discard the wrong message. And React 19's
+  // linter rightly flags a clock read in component scope as impure, because it
+  // cannot tell that `send` only ever runs from an event handler.
+  //
+  // A ref counter fixes both: it is monotonic, so ids never collide, and
+  // reading a ref is pure. These ids are also purely local and short-lived --
+  // each is replaced by the server's real id as soon as the reply lands.
+  const nextTempId = useRef(0);
+
   // ------------------------------------------------------------------
   // Create a chat session when the panel first opens.
   // ------------------------------------------------------------------
@@ -113,7 +126,7 @@ export default function ChatPanel({ projectId }: Props) {
     // interface feel laggy, when in fact we already know exactly what the user
     // typed. The temporary id is replaced by the real one when the reply lands.
     const optimistic: ChatMessageItem = {
-      id: `temp-${Date.now()}`,
+      id: `temp-${nextTempId.current++}`,
       session_id: sessionId,
       role: "user",
       content: question,

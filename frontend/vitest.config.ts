@@ -22,13 +22,16 @@ import path from "path";
 export default defineConfig({
   plugins: [react()],
 
-  // tsconfig.json sets `"jsx": "preserve"`, because Next.js does its own JSX
-  // transform at build time. Vitest has no Next.js build, so it must be told
-  // to do the transform itself -- and to use the AUTOMATIC runtime, which
-  // injects the jsx import rather than requiring `React` to be in scope.
+  // Compile JSX with the AUTOMATIC runtime, which injects the jsx import
+  // rather than requiring `React` to be in scope.
   //
-  // Without this every .tsx test fails with "React is not defined", which
-  // points at the test file rather than at the transform actually responsible.
+  // This was originally required because tsconfig.json set `"jsx": "preserve"`
+  // for Next.js's own build. Next 16 rewrote that to `"react-jsx"` on its
+  // first build, so esbuild would now infer the right thing unaided -- but it
+  // stays explicit, because the test transform should not depend on a value
+  // Next.js manages and rewrites without asking. Without it, every .tsx test
+  // fails with "React is not defined", an error that points at the test file
+  // rather than at the transform actually responsible.
   esbuild: { jsx: "automatic" },
 
   resolve: {
