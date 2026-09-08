@@ -1,6 +1,6 @@
 # Start here
 
-This repository has 19 hand-written documents. This page says which ones you
+This repository has 20 hand-written documents. This page says which ones you
 need and in what order, so you never have to guess.
 
 (`frontend/AGENTS.md` and `frontend/CLAUDE.md` are not among them — Next.js
@@ -135,6 +135,7 @@ stops.
 | [`components/`](frontend/components/README.md) | Upload, search, chat |
 | [`lib/`](frontend/lib/README.md) | The API client |
 | [`tests/`](frontend/tests/README.md) | 122 tests |
+| [`tests-e2e/`](frontend/tests-e2e/README.md) | 14 tests, real browser |
 
 ---
 
@@ -164,11 +165,16 @@ So it does not collide with one you may already be running.
 
 ## Honest state of the repository
 
-**356 tests: 234 backend, 122 frontend.** They cover the chunker's token
+**370 tests: 234 backend, 122 frontend, 14 end to end.** They cover the chunker's token
 arithmetic, the retrieval SQL, the multi-tenant isolation, the API's auth
-wiring, and the frontend's API client and three panels — see
-[`backend/tests/`](backend/tests/README.md) and
-[`frontend/tests/`](frontend/tests/README.md).
+wiring, the frontend's API client and three panels, and one full journey
+through a real browser — see [`backend/tests/`](backend/tests/README.md),
+[`frontend/tests/`](frontend/tests/README.md) and
+[`frontend/tests-e2e/`](frontend/tests-e2e/README.md).
+
+The 14 end-to-end tests are the only ones that check the two halves still
+agree. Renaming one field in a Pydantic schema leaves all 356 unit tests green
+while search renders no filename; that was verified, not assumed.
 
 Each of those files also names what it does *not* cover, which is the more
 useful half: PDF and Office extraction, the real OCR engines, document upload

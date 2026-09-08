@@ -53,3 +53,11 @@ Thumbs.db
 *.log
 npm-debug.log*
 yarn-error.log*
+
+# Playwright artefacts -- traces, screenshots and videos from failed e2e runs.
+# Regenerated on every run and often megabytes each, so they are never
+# committed; CI uploads them as a build artifact instead.
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+frontend/.playwright/

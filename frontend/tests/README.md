@@ -157,9 +157,11 @@ Honest gaps:
   creation, and the dashboard's provider health check are unverified.
 - **Tailwind styling and layout.** Out of reach for jsdom, which has no layout
   engine at all.
-- **End to end.** Nothing drives a real browser against a real backend, so the
-  hand-written interfaces in `lib/api.ts` can still drift from
-  `backend/app/schemas/` with nothing to catch it.
+- **End to end** is covered separately by
+  [`../tests-e2e/`](../tests-e2e/README.md) — 14 tests driving a real browser
+  against the real backend, which is the only thing here that catches drift
+  between `lib/api.ts` and `backend/app/schemas/`. Verified by renaming a
+  schema field: all 356 unit tests stayed green and the e2e caught it.
 
 ## A note on the pinned versions
 

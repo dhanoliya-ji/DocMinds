@@ -169,7 +169,15 @@ the mutation checks each key assertion was verified against.
 Both polling lines quoted above are pinned: removing the `clearInterval`
 cleanup fails two tests, and removing the early return fails four.
 
-`/login`, `/dashboard` and the landing page remain untested.
+`/login`, `/dashboard` and the landing page have no unit tests, though the
+e2e journey exercises signup and project creation through the real UI.
+
+```bash
+npm run test:e2e      # 14 tests, real browser, real backend
+```
+
+That suite is the only thing that checks this app and the backend still agree
+— see [`tests-e2e/README.md`](tests-e2e/README.md) for what it needs running.
 
 ---
 
