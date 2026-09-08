@@ -84,6 +84,21 @@ vi.mock("framer-motion", async () => {
 // an unauthenticated user is sent is behaviour, not an implementation detail.
 const originalLocation = window.location;
 
+// ----------------------------------------------------------------------
+// Element.scrollIntoView
+// ----------------------------------------------------------------------
+// jsdom implements no layout at all, so this method simply does not exist.
+// ChatPanel calls it after every message to keep the newest answer in view,
+// which means every one of its tests would fail with "not a function" -- an
+// error that points at the component rather than at the missing browser API.
+//
+// A no-op is the right stub: there is nothing to scroll in a headless DOM, and
+// whether the view scrolled is not something these tests can meaningfully
+// assert on anyway.
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = vi.fn();
+}
+
 beforeEach(() => {
   Object.defineProperty(window, "location", {
     configurable: true,

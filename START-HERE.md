@@ -1,6 +1,6 @@
 # Start here
 
-There are 18 documents in this repository. This page says which ones you need
+There are 19 documents in this repository. This page says which ones you need
 and in what order, so you never have to guess.
 
 **Pick the row that describes you.**
@@ -14,7 +14,7 @@ and in what order, so you never have to guess.
 | Change the frontend | [`frontend/README.md`](frontend/README.md) | 10 min |
 | Look up a word | [GLOSSARY](GLOSSARY.md) | as needed |
 | Fix something broken | [Troubleshooting](README.md#troubleshooting) | as needed |
-| Run the tests | [`backend/tests/`](backend/tests/README.md) | 5 min |
+| Run the tests | [backend](backend/tests/README.md) · [frontend](frontend/tests/README.md) | 5 min |
 
 Unfamiliar with RAG, embeddings or vector search? Read the
 [glossary](GLOSSARY.md) first. Twenty minutes there saves an hour everywhere
@@ -131,6 +131,7 @@ stops.
 | [`app/`](frontend/app/README.md) | The four routes |
 | [`components/`](frontend/components/README.md) | Upload, search, chat |
 | [`lib/`](frontend/lib/README.md) | The API client |
+| [`tests/`](frontend/tests/README.md) | 106 tests |
 
 ---
 
@@ -160,11 +161,16 @@ So it does not collide with one you may already be running.
 
 ## Honest state of the repository
 
-**The backend has 234 tests; the frontend has none.** The suite covers the
-chunker's token arithmetic, the retrieval SQL and the multi-tenant isolation —
-see [`backend/tests/`](backend/tests/README.md). What it does not cover is
-named there too: PDF and Office extraction, the real OCR engines, document
-upload, and the whole frontend.
+**340 tests: 234 backend, 106 frontend.** They cover the chunker's token
+arithmetic, the retrieval SQL, the multi-tenant isolation, the API's auth
+wiring, and the frontend's API client and three panels — see
+[`backend/tests/`](backend/tests/README.md) and
+[`frontend/tests/`](frontend/tests/README.md).
+
+Each of those files also names what it does *not* cover, which is the more
+useful half: PDF and Office extraction, the real OCR engines, document upload
+end to end, the four frontend pages (including the document polling), and
+anything driving a real browser against a real backend.
 
 **Uploads live on local disk**, so the API and the worker must share a
 filesystem. Running them on separate machines needs the storage layer changed
