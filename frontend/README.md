@@ -1,7 +1,7 @@
 # `frontend/` — the DocMinds web app
 
-Next.js 14 with the app router, TypeScript and Tailwind. Around 2,700 lines
-across four pages, three components and one API client.
+Next.js 16 and React 19, with the app router, TypeScript and Tailwind. Around
+2,700 lines across four pages, three components and one API client.
 
 It is a **client of the API and nothing more.** No database access, no
 retrieval, no model calls — every one of those lives in `backend/`. If the API

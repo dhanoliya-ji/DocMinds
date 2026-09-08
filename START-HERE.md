@@ -1,7 +1,10 @@
 # Start here
 
-There are 19 documents in this repository. This page says which ones you need
-and in what order, so you never have to guess.
+This repository has 19 hand-written documents. This page says which ones you
+need and in what order, so you never have to guess.
+
+(`frontend/AGENTS.md` and `frontend/CLAUDE.md` are not among them — Next.js
+generates those for AI coding tools and re-creates them if deleted.)
 
 **Pick the row that describes you.**
 
